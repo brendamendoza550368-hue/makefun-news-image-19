@@ -32,10 +32,21 @@ def digest(path: str) -> str:
     return hasher.hexdigest()
 
 
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+
+
+def looks_like_png(path: str) -> bool:
+    with open(path, "rb") as handle:
+        return handle.read(len(PNG_SIGNATURE)) == PNG_SIGNATURE
+
+
 def deliver() -> int:
     source = picture_path()
     if os.path.getsize(source) > MAX_BYTES:
         print("entry.png exceeds the size gate", file=sys.stderr)
+        return 1
+    if not looks_like_png(source):
+        print("entry.png is not a PNG file", file=sys.stderr)
         return 1
     out_folder = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
     os.makedirs(out_folder, exist_ok=True)
